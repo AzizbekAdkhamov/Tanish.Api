@@ -1,0 +1,6 @@
+@Tanish.Api_HostAddress = http://localhost:5281
+
+GET {{Tanish.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

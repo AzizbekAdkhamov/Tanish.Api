@@ -1,4 +1,5 @@
 ﻿using Tanish.Domain.Commons;
+using Tanish.Domain.Models.Profile;
 
 namespace Tanish.Domain.Models.MatchModels;
 public class MatchFeedback :BaseEntity

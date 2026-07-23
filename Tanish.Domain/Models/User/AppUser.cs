@@ -1,6 +1,7 @@
 ﻿using Tanish.Domain.Commons;
+using Tanish.Domain.Models.Profile;
 
-namespace Tanish.Domain.Models;
+namespace Tanish.Domain.Models.User;
 
 public class AppUser : BaseEntity
 {

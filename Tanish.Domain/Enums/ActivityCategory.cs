@@ -1,4 +1,5 @@
 ﻿namespace Tanish.Domain.Enums;
+
 public enum ActivityCategory
 {
     Coding,
@@ -7,8 +8,8 @@ public enum ActivityCategory
     JobHunt,
     LanguageLearner,
     BookLover,
-    outdoorActivities,
-    AppartmentShare,
-    gaming,
+    OutdoorActivities,
+    ApartmentShare,
+    Gaming,
     OtherInterest
 }

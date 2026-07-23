@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Tanish.Domain.Models;
-
+using Tanish.Domain.Models.Profile;
 
 namespace Tanish.Infrastructure.Persistence.Configurations;
+
 public class ActivityProfileConfiguration : IEntityTypeConfiguration<ActivityProfile>
 {
     public void Configure(EntityTypeBuilder<ActivityProfile> builder)
@@ -13,7 +14,7 @@ public class ActivityProfileConfiguration : IEntityTypeConfiguration<ActivityPro
         builder.Property(p => p.BlurbText)
             .HasMaxLength(1000);
 
-        builder.Property(p => p.BlurbEmbredding)
+        builder.Property(p => p.BlurbEmbedding)
             .HasColumnType("vector(1536)");
 
         builder.HasIndex(p => p.Category);

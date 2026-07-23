@@ -1,15 +1,15 @@
 ﻿using Microsoft.Extensions.AI;
 using Pgvector;
-using System.Reflection.Emit;
 
 namespace Tanish.Infrastructure.AI;
+
 public class EmbeddingService : IEmbeddingService
 {
     private readonly IEmbeddingGenerator<string, Embedding<float>> _generator;
 
-    public EmbeddingService(IEmbeddingGenerator<string, Embedding<float>> _generator)
+    public EmbeddingService(IEmbeddingGenerator<string, Embedding<float>> generator)
     {
-        _generator = _generator;
+        _generator = generator;
     }
 
     public async Task<Vector> GenerateEmbeddingAsync(string text, CancellationToken ct = default)

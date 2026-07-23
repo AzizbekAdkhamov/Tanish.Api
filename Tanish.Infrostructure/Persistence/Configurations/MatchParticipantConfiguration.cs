@@ -4,15 +4,15 @@ using Tanish.Domain.Models.MatchModels;
 
 namespace Tanish.Infrastructure.Persistence.Configurations;
 
-internal class MatchParticipantConfiguration :IEntityTypeConfiguration<MatchParticipant>
+public class MatchParticipantConfiguration : IEntityTypeConfiguration<MatchParticipant>
 {
     public void Configure(EntityTypeBuilder<MatchParticipant> builder)
     {
-        builder.HasKey(mp => new { mp.Id, mp.ProfileId });
+        builder.HasKey(mp => new { mp.MatchId, mp.ProfileId });
 
         builder.HasOne(mp => mp.Match)
             .WithMany(m => m.Participants)
-            .HasForeignKey(mp => mp.Id);
+            .HasForeignKey(mp => mp.MatchId);
 
         builder.HasOne(mp => mp.Profile)
             .WithMany()

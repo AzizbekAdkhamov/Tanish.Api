@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.AI;
 using Pgvector;
+using Tanish.Application.Common.Interfaces;
 
 namespace Tanish.Infrastructure.AI;
 

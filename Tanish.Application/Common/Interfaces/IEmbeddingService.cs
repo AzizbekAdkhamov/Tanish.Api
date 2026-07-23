@@ -1,6 +1,6 @@
 ﻿using Pgvector;
 
-namespace Tanish.Infrastructure.AI;
+namespace Tanish.Application.Common.Interfaces;
 public interface IEmbeddingService
 {
     Task<Vector> GenerateEmbeddingAsync(string text, CancellationToken ct = default);

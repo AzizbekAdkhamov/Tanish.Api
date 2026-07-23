@@ -1,12 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Tanish.Domain.Models;
+﻿// Tanish.Infrostructure/Persistence/AppDbContext.cs
+using Microsoft.EntityFrameworkCore;
+using Tanish.Application.Common.Interfaces;
 using Tanish.Domain.Models.MatchModels;
 using Tanish.Domain.Models.Profile;
 using Tanish.Domain.Models.User;
 
 namespace Tanish.Persistence.DbContexts;
 
-public class AppDbContext : DbContext
+public class AppDbContext : DbContext, IAppDbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 

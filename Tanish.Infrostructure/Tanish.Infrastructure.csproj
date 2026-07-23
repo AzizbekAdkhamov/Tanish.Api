@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Tanish.Application\Tanish.Application.csproj" />
     <ProjectReference Include="..\Tanish.Domain\Tanish.Domain.csproj" />
   </ItemGroup>
 

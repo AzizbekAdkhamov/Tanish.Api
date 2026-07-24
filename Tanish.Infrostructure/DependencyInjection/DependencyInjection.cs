@@ -19,11 +19,17 @@ public static class DependencyInjection
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
 
         services.AddScoped<IEmbeddingService, EmbeddingService>();
+        services.AddScoped<IModerationService, ModerationService>();
 
         services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(sp =>
             new OpenAIClient(config["OpenAI:ApiKey"])
                 .GetEmbeddingClient("text-embedding-3-small")
                 .AsIEmbeddingGenerator());
+
+        services.AddSingleton<IChatClient>(sp =>
+            new OpenAIClient(config["OpenAI:ApiKey"])
+                .GetChatClient("gpt-4o-mini")
+                .AsIChatClient());
 
         return services;
     }

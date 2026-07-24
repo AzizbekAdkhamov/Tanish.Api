@@ -22,8 +22,9 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 app.UseMiddleware<ExceptionHandlingMiddleware>();
-app.UseHttpsRedirection();
 
+app.UseHttpsRedirection();
+app.MapControllers();
 app.UseAuthorization();
 
 app.MapControllers();

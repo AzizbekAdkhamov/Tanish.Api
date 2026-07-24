@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Tanish.Domain.Rules;
 
 namespace Tanish.Application.Profiles.Commands;
 
@@ -23,7 +24,16 @@ public class CreateActivityProfileCommandValidator : AbstractValidator<CreateAct
         RuleFor(x => x.Level)
             .IsInEnum();
 
-        RuleFor(x => x.DesiredGroupSize)
-            .InclusiveBetween(2, 20).WithMessage("Group size must be between 2 and 20.");
+        RuleFor(x => x)
+            .Must(x =>
+            {
+                var (min, max) = ActivityGroupSizeRules.GetRange(x.Category);
+                return x.DesiredGroupSize >= min && x.DesiredGroupSize <= max;
+            })
+            .WithMessage(x =>
+            {
+                var (min, max) = ActivityGroupSizeRules.GetRange(x.Category);
+                return $"For {x.Category}, group size must be between {min} and {max}.";
+            });
     }
 }

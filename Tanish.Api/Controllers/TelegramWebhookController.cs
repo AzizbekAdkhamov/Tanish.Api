@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Telegram.Bot.Types;
 using Tanish.Api.TelegramBot;
 
@@ -6,6 +7,7 @@ namespace Tanish.Api.Controllers;
 
 [ApiController]
 [Route("api/telegram/webhook")]
+[EnableRateLimiting("telegram-webhook")]
 public class TelegramWebhookController : ControllerBase
 {
     private readonly TelegramUpdateHandler _handler;

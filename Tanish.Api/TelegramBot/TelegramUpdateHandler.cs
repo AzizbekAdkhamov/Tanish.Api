@@ -7,6 +7,7 @@ using Tanish.Application.Profiles.Commands;
 using Tanish.Application.Users.Commands;
 using Tanish.Domain.Enums;
 using Tanish.Application.Profiles.Queries;
+using Serilog.Context;
 
 namespace Tanish.Api.TelegramBot;
 
@@ -28,6 +29,7 @@ public class TelegramUpdateHandler
         if (update.Message?.Text is not { } messageText || update.Message.From is null)
             return;
 
+        using var _ = LogContext.PushProperty("TelegramUserId", update.Message.From.Id);
         var telegramId = update.Message.From.Id;
         var chatId = update.Message.Chat.Id;
         var state = _stateStore.Get(telegramId);

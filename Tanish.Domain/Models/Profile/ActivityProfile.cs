@@ -15,4 +15,5 @@ public class ActivityProfile : BaseEntity
     public string BlurbText { get; set; }
     public Vector BlurbEmbedding { get; set; }
     public bool IsSearchable { get; set; }
+    public int DesiredGroupSize { get; set; } = 2;
 }

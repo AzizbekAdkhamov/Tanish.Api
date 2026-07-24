@@ -8,5 +8,6 @@ public record CreateActivityProfileCommand(
     ActivityCategory Category,
     ExperienceLevel Level,
     string Availability,
-    string BlurbText
+    string BlurbText,
+    int DesiredGroupSize = 2
 ) : IRequest<Guid>;

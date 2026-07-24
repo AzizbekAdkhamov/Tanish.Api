@@ -1,3 +1,4 @@
+using Tanish.Api.Middleware;
 using Tanish.Application;
 using Tanish.Infrastructure.DependencyInjection; 
 
@@ -20,7 +21,7 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

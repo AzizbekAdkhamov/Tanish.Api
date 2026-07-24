@@ -9,7 +9,9 @@ public enum ConversationStep
     AwaitingLevel,
     AwaitingAvailability,
     AwaitingBlurb,
-    AwaitingMatchConfirmation
+    AwaitingFindProfileSelection,
+    AwaitingMatchConfirmation,
+    AwaitingReportReason
 }
 
 

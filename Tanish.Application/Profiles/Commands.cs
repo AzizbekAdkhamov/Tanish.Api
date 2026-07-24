@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Tanish.Domain.Enums;
 
-namespace Tanish.Application.Profiles.Commands;
+namespace Tanish.Application.Profiles;
 
 public record CreateActivityProfileCommand(
     Guid UserId,

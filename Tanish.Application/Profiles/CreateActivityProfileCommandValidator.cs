@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using Tanish.Domain.Rules;
 
-namespace Tanish.Application.Profiles.Commands;
+namespace Tanish.Application.Profiles;
 
 public class CreateActivityProfileCommandValidator : AbstractValidator<CreateActivityProfileCommand>
 {

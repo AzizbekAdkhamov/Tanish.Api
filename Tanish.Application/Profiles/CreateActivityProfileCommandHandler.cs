@@ -3,7 +3,7 @@ using MediatR;
 using Tanish.Application.Common.Interfaces;
 using Tanish.Domain.Models.Profile;
 
-namespace Tanish.Application.Profiles.Commands;
+namespace Tanish.Application.Profiles;
 
 public class CreateActivityProfileCommandHandler : IRequestHandler<CreateActivityProfileCommand, Guid>
 {

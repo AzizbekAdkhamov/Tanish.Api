@@ -17,7 +17,15 @@ public class GetOrCreateUserCommandHandler : IRequestHandler<GetOrCreateUserComm
             .FirstOrDefaultAsync(u => u.TelegramId == request.TelegramId, cancellationToken);
 
         if (existing is not null)
+        {
+            // keep alias fresh if it changed on Telegram's side
+            if (!string.IsNullOrWhiteSpace(request.Alias) && existing.Alias != request.Alias)
+            {
+                existing.Alias = request.Alias;
+                await _db.SaveChangesAsync(cancellationToken);
+            }
             return existing.Id;
+        }
 
         var user = new AppUser
         {

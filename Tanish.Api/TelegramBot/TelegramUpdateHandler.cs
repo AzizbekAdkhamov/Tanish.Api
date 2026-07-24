@@ -113,7 +113,7 @@ public class TelegramUpdateHandler
             case ConversationStep.AwaitingReportReason:
                 await _mediator.Send(new CreateReportCommand(
                     state.PendingReportMatchId!.Value,
-                    (await _mediator.Send(new GetOrCreateUserCommand(telegramId, alias), ct)) == default ? default : state.PendingReportMatchId!.Value, // reporter profile resolved below
+                    state.PendingReporterProfileId!.Value,
                     state.PendingReportedProfileId!.Value,
                     messageText.Trim()), ct);
                 await Send(chatId, "Thanks - your report has been recorded.", ct);

@@ -209,7 +209,6 @@ public class TelegramUpdateHandler
 
     private async Task HandleFindAsync(long chatId, long telegramId, CancellationToken ct)
     {
-        var alias = telegramId.ToString();
         var userId = await _mediator.Send(new GetOrCreateUserCommand(telegramId, null), ct);
 
         var profiles = await _mediator.Send(new GetSearchableProfilesForUserQuery(userId), ct);

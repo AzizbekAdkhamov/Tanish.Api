@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Tanish.Application.Profiles.Commands;
+using Tanish.Application.Profiles;
 
 namespace Tanish.Api.Controllers;
 

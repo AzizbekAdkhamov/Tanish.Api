@@ -1,4 +1,4 @@
-﻿using Tanish.Application.Profiles.Commands;
+﻿using Tanish.Application.Profiles;
 using Tanish.Domain.Enums;
 using Xunit;
 

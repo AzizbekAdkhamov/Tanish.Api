@@ -34,7 +34,7 @@ public class TelegramUpdateHandler
             return;
         }
 
-        if (update.Message?.Text is not { } messageText || update.Message.From is null)
+        if (update.Message?.From is null)
             return;
 
         var telegramUser = update.Message.From;
@@ -43,6 +43,25 @@ public class TelegramUpdateHandler
         var chatId = update.Message.Chat.Id;
         var state = _stateStore.Get(telegramId);
         var alias = telegramUser.Username ?? telegramUser.FirstName;
+
+        if (update.Message.Photo is { Length: > 0 } photos)
+        {
+            if (state.Step == ConversationStep.AwaitingPhoto)
+            {
+                var largestPhoto = photos[^1]; // Telegram sends several sizes; last is highest resolution
+                await _mediator.Send(new SetProfilePhotoCommand(telegramId, largestPhoto.FileId), ct);
+                await CreateProfileAsync(chatId, telegramId, alias, state, ct);
+                _stateStore.Reset(telegramId);
+            }
+            else
+            {
+                await Send(chatId, "I wasn't expecting a photo right now. Send /newprofile to start a profile.", ct);
+            }
+            return;
+        }
+
+        if (update.Message.Text is not { } messageText)
+            return;
 
         if (messageText == "/start")
         {
@@ -105,9 +124,24 @@ public class TelegramUpdateHandler
 
             case ConversationStep.AwaitingBlurb:
                 state.BlurbText = messageText.Trim();
-                state.Step = ConversationStep.None;
-                await CreateProfileAsync(chatId, telegramId, alias, state, ct);
-                _stateStore.Reset(telegramId);
+                state.Step = ConversationStep.AwaitingPhoto;
+                await Send(chatId, "Last step - send a photo so people know you're a real person (or type /skip).", ct);
+                return;
+
+            case ConversationStep.AwaitingPhoto:
+                if (messageText.Trim().Equals("/skip", StringComparison.OrdinalIgnoreCase))
+                {
+                    await CreateProfileAsync(chatId, telegramId, alias, state, ct);
+                    _stateStore.Reset(telegramId);
+                }
+                else
+                {
+                    await Send(chatId, "Send a photo, or type /skip.", ct);
+                }
+                return;
+
+            case ConversationStep.AwaitingMatchConfirmation:
+                await HandleMatchConfirmationAsync(chatId, telegramId, state, messageText, ct);
                 return;
 
             case ConversationStep.AwaitingReportReason:
@@ -210,7 +244,6 @@ public class TelegramUpdateHandler
     private async Task HandleFindAsync(long chatId, long telegramId, CancellationToken ct)
     {
         var userId = await _mediator.Send(new GetOrCreateUserCommand(telegramId, null), ct);
-
         var profiles = await _mediator.Send(new GetSearchableProfilesForUserQuery(userId), ct);
 
         if (profiles.Count == 0)
@@ -251,8 +284,16 @@ public class TelegramUpdateHandler
         state.PendingCandidateIds = new List<Guid> { best.ProfileId };
         state.Step = ConversationStep.AwaitingMatchConfirmation;
 
-        await Send(chatId,
-            $"Found a potential match: {best.Alias}, {best.Level}, available {best.Availability}.\n\nReply 'yes' to connect, or 'no' to skip.", ct);
+        var caption = $"Found a potential match: {best.Alias}, {best.Level}, available {best.Availability}.\n\nReply 'yes' to connect, or 'no' to skip.";
+
+        if (best.TelegramPhotoFileId is not null)
+        {
+            await _bot.SendPhoto(chatId, InputFile.FromFileId(best.TelegramPhotoFileId), caption: caption, cancellationToken: ct);
+        }
+        else
+        {
+            await Send(chatId, caption, ct);
+        }
     }
 
     private async Task HandleMatchConfirmationAsync(long chatId, long telegramId, ConversationState state, string messageText, CancellationToken ct)

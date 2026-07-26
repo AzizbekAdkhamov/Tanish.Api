@@ -1,5 +1,4 @@
-﻿// Tanish.Application/Matching/Queries/FindMatchCandidatesQuery.cs
-using MediatR;
+﻿using MediatR;
 using Tanish.Domain.Enums;
 
 namespace Tanish.Application.Matching.Queries;
@@ -12,5 +11,6 @@ public record MatchCandidateDto(
     ActivityCategory Category,
     ExperienceLevel Level,
     string Availability,
+    string? TelegramPhotoFileId,
     double SimilarityDistance
 );

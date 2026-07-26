@@ -1,5 +1,4 @@
-﻿// Tanish.Application/Matching/Queries/FindMatchCandidatesQueryHandler.cs
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Pgvector.EntityFrameworkCore;
 using Tanish.Application.Common.Interfaces;
@@ -33,6 +32,7 @@ public class FindMatchCandidatesQueryHandler : IRequestHandler<FindMatchCandidat
                 p.Category,
                 p.Level,
                 p.Availability,
+                p.User.TelegramPhotoFileId,
                 p.BlurbEmbedding.CosineDistance(profile.BlurbEmbedding)))
             .ToListAsync(cancellationToken);
 

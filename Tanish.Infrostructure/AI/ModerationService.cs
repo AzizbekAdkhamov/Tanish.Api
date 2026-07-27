@@ -25,10 +25,10 @@ public class ModerationService : IModerationService
              Description: "{text}"
              """;
 
-        var response = await _chatClient.GetResponseAsync(prompt, cancellationToken: ct);
+        var options = new ChatOptions { ModelId = "gpt-4o-mini" };
+        var response = await _chatClient.GetResponseAsync(prompt, options, cancellationToken: ct);
         var answer = response.Text.Trim().ToLowerInvariant();
 
-        // "yes" means it IS romantic/dating content -> NOT appropriate for this bot
         return !answer.StartsWith("yes");
     }
 }

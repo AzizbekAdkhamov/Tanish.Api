@@ -1,15 +1,15 @@
 ﻿using MediatR;
 using Serilog.Context;
+using Telegram.Bot;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 using Tanish.Application.Matching.Commands;
 using Tanish.Application.Matching.Queries;
 using Tanish.Application.Profiles;
-using Tanish.Application.Profiles.Commands;
 using Tanish.Application.Profiles.Queries;
 using Tanish.Application.Users.Commands;
 using Tanish.Domain.Enums;
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Tanish.Api.TelegramBot;
 
@@ -67,7 +67,13 @@ public class TelegramUpdateHandler
         {
             _stateStore.Reset(telegramId);
             await _mediator.Send(new GetOrCreateUserCommand(telegramId, alias), ct);
-            await Send(chatId, "Welcome to Tanish. This bot helps you find an accountability partner - not a dating app.\n\nSend /newprofile to create a profile, /find to search, /stop to leave the searchable pool, or /report to flag your last match.", ct);
+            await Send(chatId,
+                "👋 <b>Welcome to Tanish</b>\n\n" +
+                "Find a real accountability partner — not a dating app.\n\n" +
+                "📝 /newprofile — create a profile\n" +
+                "🔍 /find — search for a partner\n" +
+                "🚪 /stop — leave the searchable pool\n" +
+                "🚩 /report — report your last match", ct);
             return;
         }
 
@@ -90,7 +96,7 @@ public class TelegramUpdateHandler
             var userId = await _mediator.Send(new GetOrCreateUserCommand(telegramId, alias), ct);
             var count = await _mediator.Send(new StopSearchingCommand(userId), ct);
             await Send(chatId, count > 0
-                ? $"You've been removed from the searchable pool ({count} profile(s))."
+                ? $"🚪 You've been removed from the searchable pool ({count} profile(s))."
                 : "You weren't in the searchable pool.", ct);
             return;
         }
@@ -110,7 +116,7 @@ public class TelegramUpdateHandler
             state.PendingReporterProfileId = recentMatch.ReporterProfileId;
             state.PendingReportedProfileId = recentMatch.ReportedProfileId;
             state.Step = ConversationStep.AwaitingReportReason;
-            await Send(chatId, $"Reporting your match with {recentMatch.ReportedAlias}. Please describe what happened:", ct);
+            await Send(chatId, $"🚩 Reporting your match with <b>{recentMatch.ReportedAlias}</b>. Please describe what happened:", ct);
             return;
         }
 
@@ -125,7 +131,7 @@ public class TelegramUpdateHandler
             case ConversationStep.AwaitingBlurb:
                 state.BlurbText = messageText.Trim();
                 state.Step = ConversationStep.AwaitingPhoto;
-                await Send(chatId, "Last step - send a photo so people know you're a real person (or type /skip).", ct);
+                await Send(chatId, "📸 Last step — send a photo so people know you're a real person (or type /skip).", ct);
                 return;
 
             case ConversationStep.AwaitingPhoto:
@@ -150,7 +156,7 @@ public class TelegramUpdateHandler
                     state.PendingReporterProfileId!.Value,
                     state.PendingReportedProfileId!.Value,
                     messageText.Trim()), ct);
-                await Send(chatId, "Thanks - your report has been recorded.", ct);
+                await Send(chatId, "Thanks — your report has been recorded.", ct);
                 _stateStore.Reset(telegramId);
                 return;
 
@@ -184,7 +190,7 @@ public class TelegramUpdateHandler
             case "lvl":
                 state.Level = Enum.Parse<ExperienceLevel>(value);
                 state.Step = ConversationStep.AwaitingAvailability;
-                await Send(chatId, "When are you usually available? (e.g. 'mornings', 'weekday evenings')", ct);
+                await Send(chatId, "🕒 When are you usually available? (e.g. 'mornings', 'weekday evenings')", ct);
                 return;
 
             case "findprofile":
@@ -197,13 +203,13 @@ public class TelegramUpdateHandler
     private async Task SendCategoryOptions(long chatId, CancellationToken ct)
     {
         var buttons = Enum.GetValues<ActivityCategory>()
-            .Select(c => InlineKeyboardButton.WithCallbackData(c.ToString(), $"cat:{c}"))
+            .Select(c => InlineKeyboardButton.WithCallbackData(CategoryStyle.Label(c), $"cat:{c}"))
             .Chunk(2)
             .Select(row => row.ToArray())
             .ToArray();
 
-        await _bot.SendMessage(chatId, "What are you looking for a partner for?",
-            replyMarkup: new InlineKeyboardMarkup(buttons), cancellationToken: ct);
+        await _bot.SendMessage(chatId, "<b>What are you looking for a partner for?</b>",
+            parseMode: ParseMode.Html, replyMarkup: new InlineKeyboardMarkup(buttons), cancellationToken: ct);
     }
 
     private async Task SendLevelOptions(long chatId, CancellationToken ct)
@@ -214,14 +220,16 @@ public class TelegramUpdateHandler
             .Select(row => row.ToArray())
             .ToArray();
 
-        await _bot.SendMessage(chatId, "What's your level?",
-            replyMarkup: new InlineKeyboardMarkup(buttons), cancellationToken: ct);
+        await _bot.SendMessage(chatId, "<b>What's your level?</b>",
+            parseMode: ParseMode.Html, replyMarkup: new InlineKeyboardMarkup(buttons), cancellationToken: ct);
     }
 
     private async Task CreateProfileAsync(long chatId, long telegramId, string alias, ConversationState state, CancellationToken ct)
     {
         try
         {
+            await _bot.SendChatAction(chatId, ChatAction.Typing, cancellationToken: ct);
+
             var userId = await _mediator.Send(new GetOrCreateUserCommand(telegramId, alias), ct);
 
             var command = new CreateActivityProfileCommand(
@@ -233,7 +241,7 @@ public class TelegramUpdateHandler
             );
 
             await _mediator.Send(command, ct);
-            await Send(chatId, "Profile created! Send /find when you're ready to search for a partner.", ct);
+            await Send(chatId, "✅ <b>Profile created!</b> Send /find when you're ready to search for a partner.", ct);
         }
         catch (Exception ex)
         {
@@ -259,22 +267,24 @@ public class TelegramUpdateHandler
         }
 
         var buttons = profiles
-            .Select(p => InlineKeyboardButton.WithCallbackData(p.Category.ToString(), $"findprofile:{p.ProfileId}"))
+            .Select(p => InlineKeyboardButton.WithCallbackData(CategoryStyle.Label(p.Category), $"findprofile:{p.ProfileId}"))
             .Chunk(2)
             .Select(row => row.ToArray())
             .ToArray();
 
-        await _bot.SendMessage(chatId, "Which profile do you want to search with?",
-            replyMarkup: new InlineKeyboardMarkup(buttons), cancellationToken: ct);
+        await _bot.SendMessage(chatId, "<b>Which profile do you want to search with?</b>",
+            parseMode: ParseMode.Html, replyMarkup: new InlineKeyboardMarkup(buttons), cancellationToken: ct);
     }
 
     private async Task RunMatchSearch(long chatId, long telegramId, Guid profileId, CancellationToken ct)
     {
+        await _bot.SendChatAction(chatId, ChatAction.Typing, cancellationToken: ct);
+
         var candidates = await _mediator.Send(new FindMatchCandidatesQuery(profileId, TopN: 1), ct);
 
         if (candidates.Count == 0)
         {
-            await Send(chatId, "No matches found right now. Try again later - we'll keep looking.", ct);
+            await Send(chatId, "No matches found right now. Try again later — we'll keep looking.", ct);
             return;
         }
 
@@ -284,11 +294,17 @@ public class TelegramUpdateHandler
         state.PendingCandidateIds = new List<Guid> { best.ProfileId };
         state.Step = ConversationStep.AwaitingMatchConfirmation;
 
-        var caption = $"Found a potential match: {best.Alias}, {best.Level}, available {best.Availability}.\n\nReply 'yes' to connect, or 'no' to skip.";
+        var caption =
+            $"✨ <b>Potential match found</b>\n\n" +
+            $"👤 {best.Alias}\n" +
+            $"📊 {best.Level}\n" +
+            $"🕒 {best.Availability}\n\n" +
+            $"Reply <b>yes</b> to connect, or <b>no</b> to skip.";
 
         if (best.TelegramPhotoFileId is not null)
         {
-            await _bot.SendPhoto(chatId, InputFile.FromFileId(best.TelegramPhotoFileId), caption: caption, cancellationToken: ct);
+            await _bot.SendPhoto(chatId, InputFile.FromFileId(best.TelegramPhotoFileId),
+                caption: caption, parseMode: ParseMode.Html, cancellationToken: ct);
         }
         else
         {
@@ -304,17 +320,17 @@ public class TelegramUpdateHandler
             var participantIds = new List<Guid> { state.ActiveProfileId!.Value, candidateProfileId };
 
             await _mediator.Send(new CreateMatchCommand(participantIds), ct);
-            await Send(chatId, "You're matched! Reach out and get started.", ct);
+            await Send(chatId, "🎉 <b>You're matched!</b> Reach out and get started.", ct);
 
             var otherTelegramId = await _mediator.Send(new GetProfileOwnerTelegramIdQuery(candidateProfileId), ct);
             if (otherTelegramId is not null)
             {
-                await Send(otherTelegramId.Value, "You've been matched with a new accountability partner! Send /find again anytime to search for more.", ct);
+                await Send(otherTelegramId.Value, "🎉 <b>You've been matched</b> with a new accountability partner! Send /find again anytime to search for more.", ct);
             }
         }
         else
         {
-            await Send(chatId, "No problem - send /find anytime to search again.", ct);
+            await Send(chatId, "No problem — send /find anytime to search again.", ct);
         }
 
         _stateStore.Reset(telegramId);
@@ -327,5 +343,5 @@ public class TelegramUpdateHandler
     }
 
     private Task Send(long chatId, string text, CancellationToken ct) =>
-        _bot.SendMessage(chatId, text, cancellationToken: ct);
+        _bot.SendMessage(chatId, text, parseMode: ParseMode.Html, cancellationToken: ct);
 }
